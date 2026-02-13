@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine · moving buttons · balloons & roses</title>
+    <style>
+        /* overall Valentine pink/red atmosphere */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: default;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #ffd9e6, #ffb3c6);
+            font-family: 'Segoe UI', 'Brush Script MT', cursive, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* main card – romantic glassmorphism */
+        .valentine-card {
+            background: rgba(255, 245, 240, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 70px 70px 70px 20px;
+            box-shadow: 0 20px 40px rgba(200, 0, 80, 0.25);
+            padding: 40px 35px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            border: 2px solid rgba(255, 200, 210, 0.7);
+            position: relative;
+            z-index: 30;
+            transition: 0.3s;
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            color: #a1044a;
+            text-shadow: 4px 4px 0 #ffe0f0, 6px 6px 10px rgba(255, 80, 120, 0.3);
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+            font-family: 'Brush Script MT', 'Georgia', cursive;
+            word-break: break-word;
+        }
+
+        .sub {
+            font-size: 1.7rem;
+            color: #c44a6c;
+            margin-bottom: 40px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.5);
+            display: inline-block;
+            padding: 10px 30px;
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 0 0 6px #ffb6b6;
+        }
+
+        /* BUTTON AREA – both buttons inline */
+        .button-duo {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 60px;
+            margin: 30px 0 20px;
+            position: relative;
+            min-height: 100px;
+        }
+
+        /* base button style – lovely valentine */
+        .btn {
+            border: none;
+            background: #ff4d6d;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 18px 40px;
+            border-radius: 60px;
+            letter-spacing: 3px;
+            box-shadow: 0 12px 0 #a11d3a, 0 10px 25px #ff8cae, 0 6px 20px rgba(200, 0, 50, 0.5);
+            transition: all 0.08s linear;
+            border: 2px solid #ffe3ec;
+            text-shadow: 2px 2px 0 #7a1f3a;
+            font-family: 'Comic Sans MS', 'Segoe UI', cursive;
+            min-width: 160px;
+            cursor: pointer;
+            position: relative;
+            z-index: 60;
+        }
+
+        /* YES button – stays still, full love */
+        .btn-yes {
+            background: #ff3b5c;
+            box-shadow: 0 12px 0 #a1223b, 0 15px 30px #ff809a;
+            transform: scale(1.05);
+        }
+
+        .btn-yes:hover {
+            background: #ff1f4a;
+            transform: scale(1.12);
+            box-shadow: 0 12px 0 #8b1a32, 0 0 25px #ffe3f0;
+        }
+
+        /* ----- NO BUTTON — ABSOLUTELY MOVES, NEVER CLICKABLE ----- */
+        .btn-no {
+            background: #5a4a4a;
+            box-shadow: 0 12px 0 #2f1e1e, 0 10px 30px #5d4141;
+            border: 2px solid #ffbeb6;
+            color: #ffe6e6;
+            text-shadow: 2px 2px 0 #2f1e1e;
+            position: absolute;  /* absolutely positioned inside .button-duo */
+            left: 70%;          /* initial far right, but JS will move it */
+            top: 10px;
+            transition: all 0.18s ease-out;  /* smooth fleeing */
+            cursor: default;    /* not clickable anyway, but no pointer */
+            pointer-events: none; /* 🚫✨ CRITICAL: NO CLICK, NO HOVER — impossible to interact */
+        }
+
+        /* it will never be hoverable because pointer-events: none */
+        /* but we keep the style coherent */
+
+        /* roses & balloons container — fixed, floating decoration */
+        .floating-decor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;  /* so buttons work through decoration */
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        /* genereric decoration item */
+        .deco-item {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0.85;
+            animation: floatSoft 8s infinite alternate ease-in-out;
+            filter: drop-shadow(0 8px 12px rgba(160, 0, 40, 0.2));
+        }
+
+        /* balloon strings — super cute */
+        .string {
+            width: 2px;
+            height: 35px;
+            background: linear-gradient(45deg, #8b5a2b, #c3a17b);
+            margin-top: -4px;
+            border-radius: 2px;
+            box-shadow: 0 0 6px #5e3e1e;
+        }
+
+        /* roses */
+        .rose {
+            font-size: 2.8rem;
+            line-height: 1;
+            text-shadow: 0 2px 15px #ffb6c1;
+        }
+
+        /* balloons */
+        .balloon {
+            font-size: 3rem;
+            line-height: 1;
+            margin-bottom: -12px;
+            text-shadow: 0 0 20px #ffe0f0, 0 4px 8px #ff5e7c;
+        }
+
+        /* various floating speeds */
+        .float1 { animation-duration: 7s; }
+        .float2 { animation-duration: 10s; }
+        .float3 { animation-duration: 12s; }
+        .float4 { animation-duration: 9s; }
+        .float5 { animation-duration: 14s; }
+
+        @keyframes floatSoft {
+            0% { transform: translateY(0px) rotate(-2deg); }
+            100% { transform: translateY(-35px) rotate(3deg); }
+        }
+
+        /* also some little rose petals and hearts */
+        .tiny-heart {
+            position: absolute;
+            color: #ff487a;
+            font-size: 1.5rem;
+            opacity: 0.5;
+            animation: twinkle 4s infinite;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            100% { opacity: 0.9; transform: scale(1.2); }
+        }
+
+        /* footer loveliness */
+        .footer-remark {
+            margin-top: 40px;
+            font-size: 1.3rem;
+            color: #990044;
+            background: rgba(255, 220, 240, 0.7);
+            padding: 8px 25px;
+            border-radius: 50px;
+            backdrop-filter: blur(3px);
+            font-weight: 600;
+            border: 1px solid #ffb0c0;
+        }
+
+        /* for smaller screens, text adjust */
+        @media (max-width: 600px) {
+            h1 { font-size: 2.5rem; }
+            .btn { font-size: 1.6rem; padding: 14px 25px; min-width: 130px; }
+            .button-duo { gap: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- FLOATING BALLOONS & ROSES — VALENTINE DREAMLAND -->
+    <div class="floating-decor">
+        <!-- bunch of red / pink / white balloons, elegant -->
+        <div class="deco-item float1" style="top: 12%; left: 6%;">
+            <span class="balloon">🎈</span>
+            <span style="color:#d43f6b; font-size:2.4rem;">❤️</span>
+            <div class="string"></div>
+        </div>
+        <div class="deco-item float2" style="top: 68%; left: 3%;">
+            <span class="balloon">🎈</span>
+            <span style="color:#c93a5d; font-size:2.2rem;">🧡</span>
+            <div class="string"></div>
+        </div>
+        <div class="deco-item float3" style="top: 80%; left: 88%;">
+            <span class="balloon">🎈</span>
+            <span style="color:#d6285b; font-size:2.5rem;">💖</span>
+            <div class="string"></div>
+        </div>
+        <div class="deco-item float4" style="top: 20%; left: 88%;">
+            <span class="balloon">🎈</span>
+            <span style="color:#b82c4c; font-size:2.9rem;">💗</span>
+            <div class="string"></div>
+        </div>
+        <div class="deco-item float5" style="top: 45%; left: 92%;">
+            <span class="balloon">🎈</span>
+            <span style="color:#c23b4b; font-size:2.3rem;">💘</span>
+            <div class="string"></div>
+        </div>
+        <!-- romantic roses everywhere -->
+        <div class="deco-item float2" style="top: 8%; left: 82%;">
+            <span class="rose">🌹</span>
+            <span style="font-size:1.2rem; color:#4f1e2a;">rose</span>
+        </div>
+        <div class="deco-item float3" style="top: 73%; left: 14%;">
+            <span class="rose">🥀</span>
+            <span style="font-size:1.2rem; color:#6f2533;">love</span>
+        </div>
+        <div class="deco-item float1" style="top: 54%; left: 78%;">
+            <span class="rose">🌹</span>
+            <span style="font-size:1.4rem; color:#a13e4a;">🌹</span>
+        </div>
+        <div class="deco-item float4" style="top: 30%; left: 15%;">
+            <span class="rose">🌹</span>
+            <span style="font-size:1.8rem;">❤️</span>
+        </div>
+        <div class="deco-item float5" style="top: 88%; left: 71%;">
+            <span class="rose">🌹</span>
+            <span style="color:#771f2f;">🌹</span>
+        </div>
+        <!-- extra petals / hearts -->
+        <div style="position:absolute; top:50%; left:20%; font-size:2.2rem; opacity:0.3;">🌺</div>
+        <div style="position:absolute; top:15%; left:45%; font-size:2.8rem; opacity:0.25;">🌸</div>
+        <div style="position:absolute; bottom:10%; right:10%; font-size:3rem; opacity:0.2;">💐</div>
+        <div style="position:absolute; top:70%; left:45%; font-size:2rem; opacity:0.3;">🌷</div>
+    </div>
+
+    <!-- MAIN VALENTINE CARD -->
+    <div class="valentine-card">
+        <h1>💘 Be my Valentine? 💘</h1>
+        <div class="sub">you make my heart float</div>
+
+        <!-- BUTTON DUO — YES BUTTON & THE FLEEING NO BUTTON (impossible to click) -->
+        <div class="button-duo" id="buttonContainer">
+            <!-- YES BUTTON – normal, clickable -->
+            <button class="btn btn-yes" id="yesBtn" onclick="alert('💖 YAY! Valentine accepted! 💖 I knew it! Love you! 🌹🌹')">YES</button>
+
+            <!-- NO BUTTON — pointer-events: none, moves around, not clickable -->
+            <button class="btn btn-no" id="noBtn">NO</button>
+        </div>
+        <div class="footer-remark">
+            💕 the NO button is made to move — you can't catch it! 💕
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // -------------------------------
+            // VALENTINE FLEEING NO BUTTON
+            // No click possible (pointer-events:none) 
+            // but it constantly moves around the container
+            // -------------------------------
+
+            const noBtn = document.getElementById('noBtn');
+            const container = document.getElementById('buttonContainer');
+            const yesBtn = document.getElementById('yesBtn'); // not used for move, just reference
+
+            // ensure NO BUTTON is absolutely positioned within container
+            // and has pointer-events: none (already inline + CSS, but double-check)
+            noBtn.style.pointerEvents = 'none';
+            noBtn.style.position = 'absolute';
+
+            // initial position (safe spot)
+            noBtn.style.left = '65%';
+            noBtn.style.top = '0px';
+
+            // container must be relative for absolute positioning inside
+            container.style.position = 'relative';
+            container.style.minHeight = '120px';
+
+            // get dimensions safely
+            function getContainerRect() {
+                return container.getBoundingClientRect();
+            }
+
+            function getBtnRect() {
+                return noBtn.getBoundingClientRect();
+            }
+
+            // helper to keep button fully inside container boundaries
+            function moveButtonRandomly() {
+                // ensure container dimensions are valid
+                const containerRect = container.getBoundingClientRect();
+                const btnRect = noBtn.getBoundingClientRect();
+
+                // button width & height including margin/padding/border
+                const btnWidth = btnRect.width;
+                const btnHeight = btnRect.height;
+
+                // container inner width / height (relative to padding)
+                // but since container has padding, we set left/top inside padding area
+                const containerStyle = window.getComputedStyle(container);
+                const containerPaddingLeft = parseFloat(containerStyle.paddingLeft) || 0;
+                const containerPaddingTop = parseFloat(containerStyle.paddingTop) || 0;
+                const containerPaddingRight = parseFloat(containerStyle.paddingRight) || 0;
+                const containerPaddingBottom = parseFloat(containerStyle.paddingBottom) || 0;
+
+                // usable width / height inside container (with respect to padding)
+                const usableWidth = containerRect.width - containerPaddingLeft - containerPaddingRight;
+                const usableHeight = containerRect.height - containerPaddingTop - containerPaddingBottom;
+
+                // avoid edge collision: max left/ top 
+                let maxLeft = usableWidth - btnWidth;
+                let maxTop = usableHeight - btnHeight;
+
+                // ensure not negative (sometimes button wider than container? shrink viewport)
+                if (maxLeft < 0) maxLeft = 0;
+                if (maxTop < 0) maxTop = 0;
+
+                // generate random position within safe zone
+                let randomLeft = Math.floor(Math.random() * maxLeft);
+                let randomTop = Math.floor(Math.random() * maxTop);
+
+                // BUT: we need to respect padding. We set left relative to container's padding start
+                noBtn.style.left = (containerPaddingLeft + randomLeft) + 'px';
+                noBtn.style.top = (containerPaddingTop + randomTop) + 'px';
+            }
+
+            // ---- move on every possible trigger: mouse move, timer, scroll ----
+            // we want the button to always escape, so move very frequently
+            // also move whenever the yes button is hovered, or mouse just roams
+
+            // 1) massive flee: on any mousemove near the container or document
+            document.addEventListener('mousemove', function(e) {
+                // move the NO button to a new random location instantly
+                moveButtonRandomly();
+            });
+
+            // 2) also move on mouseover of YES button to escape any potential click attempt 
+            yesBtn.addEventListener('mouseenter', moveButtonRandomly);
+            yesBtn.addEventListener('click', moveButtonRandomly); // just for fun
+
+            // 3) also move the button every 150ms to feel alive – and impossible to catch
+            setInterval(moveButtonRandomly, 150);
+
+            // 4) on window resize, reposition within new dimensions
+            window.addEventListener('resize', function() {
+                moveButtonRandomly();
+            });
+
+            // 5) also move when container is scrolled (if ever)
+            container.addEventListener('scroll', moveButtonRandomly);
+
+            // 6) additionally, move on initial load
+            window.addEventListener('load', function() {
+                moveButtonRandomly();
+            });
+
+            // run immediately
+            moveButtonRandomly();
+
+            // --- extra protection: ensure NO BUTTON never gets pointer-events back ---
+            // also any attempt to click via other means is blocked by pointer-events:none
+            // we double enforce
+            noBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                return false;
+            });
+            noBtn.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                return false;
+            });
+
+            // for any weird hover, disable default
+            noBtn.style.pointerEvents = 'none';
+
+            // Just to be perfectly safe, override any style that would enable pointer
+            Object.defineProperty(noBtn.style, 'pointerEvents', {
+                value: 'none',
+                writable: false
+            }); // but this is overkill. fine.
+
+            // YES button – also makes heartwarming alert (already inline)
+            // but we add a secondary if needed
+            const yesButton = document.getElementById('yesBtn');
+            yesButton.addEventListener('click', function() {
+                // already inline, but double alert not needed, but we can add extra balloon?
+                // we keep inline, but fine.
+            });
+
+            // also ensure NO button background stays, plus not clickable.
+            // move also when someone tries to click on YES — extra moving
+            // all good
+
+            // additional movement: on YES button touch for mobile
+            yesBtn.addEventListener('touchstart', moveButtonRandomly);
+            document.addEventListener('touchmove', moveButtonRandomly);
+            // mobile also needs to move
+
+            // keep container height dynamic so no cut-out
+            function adjustContainerMinHeight() {
+                let btnH = noBtn.offsetHeight || 100;
+                container.style.minHeight = (btnH + 40) + 'px';
+            }
+            window.addEventListener('load', adjustContainerMinHeight);
+            window.addEventListener('resize', adjustContainerMinHeight);
+            adjustContainerMinHeight();
+
+        })();
+    </script>
+
+    <!-- hidden romantic message, just because -->
+    <div style="position:fixed; bottom:10px; left:10px; font-size:1rem; color:#b3445c; opacity:0.6; z-index:99; pointer-events:none;">
+        🌹 roses are red, balloons float high, you can’t press NO – so give it a try? 🌹
+    </div>
+</body>
+</html>
